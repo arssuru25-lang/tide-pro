@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "926515826909",
+    "project_id": "tide-cloud-92523",
+    "storage_bucket": "tide-cloud-92523.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926515826909:android:db24f0b20edbc64185cb34",
+        "android_client_info": {
+          "package_name": "com.example.flutter_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0l1FO4Vnp_S74aUdQXFVt3ZPwz00BQI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
