@@ -297,10 +297,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-   int total = 0;
-int completed = 0;
-int remaining = 0;
-double progress = 0;
 
    
     return Scaffold(
@@ -341,11 +337,7 @@ double progress = 0;
                 color: isDark ? Colors.white : const Color(0xFF1E1B4B),
               ),
             ),
-            Text(
-              '$remaining tasks remaining',
-              style: TextStyle(
-                  color: isDark ? Colors.grey.shade400 : TideColors.lightMuted),
-            ),
+           
             const SizedBox(height: 8),
             Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -396,57 +388,8 @@ double progress = 0;
               ),
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 80,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _statCard(
-                      'Total',
-                      total.toString(),
-                      const Color(0xFF6C63FF),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _statCard(
-                      'Done',
-                      completed.toString(),
-                      const Color(0xFF22C55E),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _statCard(
-                      'Left',
-                      remaining.toString(),
-                      const Color(0xFFEF4444),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Column(
-              children: [
-                Text(
-                  'Progress ${(progress * 100).toInt()}%',
-                  style: const TextStyle(
-                    color: Color(0xFF6C63FF),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(10),
-                  backgroundColor: Colors.grey.shade300,
-                  color: TideColors.primary,
-                ),
-              ],
-            ),
+            
+           
             const SizedBox(height: 8),
             TextField(
               style: TextStyle(
@@ -566,6 +509,74 @@ final filteredTasks = firestoreTasks.where((task) {
 }).toList();
 return Column(
   children: [
+
+    Text(
+      '$remaining tasks remaining',
+      style: TextStyle(
+        color: isDark
+            ? Colors.grey.shade400
+            : TideColors.lightMuted,
+      ),
+    ),
+
+    const SizedBox(height: 20),
+
+    SizedBox(
+      height: 80,
+      child: Row(
+        children: [
+          Expanded(
+            child: _statCard(
+              'Total',
+              total.toString(),
+              const Color(0xFF6C63FF),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _statCard(
+              'Done',
+              completed.toString(),
+              const Color(0xFF22C55E),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _statCard(
+              'Left',
+              remaining.toString(),
+              const Color(0xFFEF4444),
+            ),
+          ),
+        ],
+      ),
+    ),
+
+    const SizedBox(height: 6),
+
+    Column(
+      children: [
+        Text(
+          'Progress ${(progress * 100).toInt()}%',
+          style: const TextStyle(
+            color: Color(0xFF6C63FF),
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: progress,
+          minHeight: 8,
+          borderRadius: BorderRadius.circular(10),
+          backgroundColor: Colors.grey.shade300,
+          color: TideColors.primary,
+        ),
+      ],
+    ),
+
+    const SizedBox(height: 12),
+
     Text(
       'Tasks Found: ${filteredTasks.length}',
       style: const TextStyle(
@@ -574,59 +585,60 @@ return Column(
         fontWeight: FontWeight.bold,
       ),
     ),
+    const SizedBox(height: 12),
 
-    ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: filteredTasks.length,
-      itemBuilder: (context, index) {
-        final task = filteredTasks[index];
+ListView.builder(
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
+  itemCount: filteredTasks.length,
+  itemBuilder: (context, index) {
+    final task = filteredTasks[index];
 
-        return Dismissible(
-          key: Key(task.id ?? task.title),
+    return Dismissible(
+      key: Key(task.id ?? task.title),
 
-          background: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 20),
-            color: Colors.red,
-            child: const Icon(
-              Icons.delete,
-              color: Colors.white,
+      background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        color: Colors.red,
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        color: Colors.red,
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+
+      onDismissed: (_) async {
+        if (task.id != null) {
+          await FirestoreService.deleteTask(task.id!);
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '"${task.title}" deleted',
             ),
-          ),
-
-          secondaryBackground: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            color: Colors.red,
-            child: const Icon(
-              Icons.delete,
-              color: Colors.white,
-            ),
-          ),
-
-          onDismissed: (_) async {
-            if (task.id != null) {
-              await FirestoreService.deleteTask(task.id!);
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '"${task.title}" deleted',
-                ),
-              ),
-            );
-          },
-
-          child: TaskCard(
-            task: task,
-            onTap: () => _toggle(task),
-            onLongPress: () => _openEditSheet(task),
           ),
         );
       },
-    ),
+
+      child: TaskCard(
+        task: task,
+        onTap: () => _toggle(task),
+        onLongPress: () => _openEditSheet(task),
+      ),
+    );
+  },
+),
   ],
 );
   },
