@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-
+import 'auth_gate.dart';
 import 'main_navigation.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -20,11 +20,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
 
-    Future.delayed(
-      const Duration(seconds: 3),
+   Future.delayed(
+  const Duration(milliseconds: 1800),
       () {
         if (!mounted) return;
 
@@ -32,7 +32,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           context,
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 700),
-            pageBuilder: (_, __, ___) => const MainNavigation(),
+           pageBuilder: (_, __, ___) => const AuthGate(),
             transitionsBuilder: (_, animation, __, child) {
               return FadeTransition(
                 opacity: animation,

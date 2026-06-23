@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'screens/auth_gate.dart';
-import 'theme/tide_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'firebase_options.dart';
+import 'theme/tide_colors.dart';
 import 'screens/welcome_screen.dart';
 
 void main() async {
@@ -12,9 +12,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-   
-
-
 
   runApp(const TideApp());
 }
@@ -26,15 +23,19 @@ class TideApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
+
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: TideColors.darkSurface,
       ),
+
       themeMode: ThemeMode.system,
-      home: const AuthGate(),
+
+      home: const WelcomeScreen(),
     );
   }
 }

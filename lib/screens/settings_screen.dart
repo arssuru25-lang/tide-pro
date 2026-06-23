@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../services/auth_service.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/user_stats_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 class SettingsScreen extends StatefulWidget {
   final List<Task> tasks;
   final VoidCallback onTasksCleared;
@@ -22,7 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
+final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('⚙ Settings'),
@@ -53,20 +55,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
+               Text(
+  user?.email ?? 'Tide User',
+  style: const TextStyle(
+    color: Colors.white,
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+  ),
+),
                 const Text(
-                  'Tide Pro',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Text(
-                  'Stay productive. Stay focused.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                  ),
-                ),
+  'Logged in successfully',
+  style: TextStyle(
+    color: Colors.white70,
+  ),
+),
                 const SizedBox(height: 8),
                 Text(
                   '${widget.tasks.length} Tasks Stored',
@@ -77,6 +79,98 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('tasks')
+      .snapshots(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return const SizedBox();
+    }
+
+    final taskCount = snapshot.data!.docs.length;
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.bar_chart,
+          color: Color(0xFF6C63FF),
+        ),
+        title: const Text('Account Stats'),
+        subtitle: Text(
+          '$taskCount tasks created',
+        ),
+      ),
+    );
+  
+  },
+),
+StreamBuilder(
+  stream: UserStatsService.statsStream(),
+  builder: (context, snapshot) {
+
+    if (!snapshot.hasData ||
+        snapshot.data!.data() == null) {
+      return const SizedBox();
+    }
+
+    final data =
+        snapshot.data!.data() as Map<String, dynamic>;
+
+    final xp = data['xp'] ?? 0;
+    final level = data['level'] ?? 1;
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.star,
+          color: Colors.amber,
+        ),
+        title: Text('XP: $xp'),
+        subtitle: Text('Level $level'),
+      ),
+    );
+  },
+),
+StreamBuilder(
+  stream: UserStatsService.statsStream(),
+  builder: (context, snapshot) {
+
+    if (!snapshot.hasData ||
+        snapshot.data!.data() == null) {
+      return const SizedBox();
+    }
+
+    final data =
+        snapshot.data!.data() as Map<String, dynamic>;
+
+    final streak = data['streak'] ?? 0;
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.local_fire_department,
+          color: Colors.orange,
+        ),
+        title: Text(
+          'Current Streak: $streak days',
+        ),
+        subtitle: const Text(
+          'Keep the momentum going!',
+        ),
+      ),
+    );
+  },
+),
           const SizedBox(height: 24),
           Card(
   shape: RoundedRectangleBorder(

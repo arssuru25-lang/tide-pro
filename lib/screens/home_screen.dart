@@ -3,7 +3,7 @@ import '../models/task.dart';
 import '../theme/tide_colors.dart';
 import '../widgets/task_card.dart';
 import '../widgets/add_task_sheet.dart';
-
+import '../services/user_stats_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 class HomeScreen extends StatefulWidget {
@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   
 
-  void _toggle(Task t) {
+  Future<void> _toggle(Task t) async {
     if (tasks.isNotEmpty && tasks.every((task) => task.isDone)) {
       showDialog(
         context: context,
@@ -95,14 +95,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(() {
       t.isDone = !t.isDone;
+     
     });
 
     if (t.isDone) {
+      await UserStatsService.addXP(10);
+      await UserStatsService.updateStreak();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             '🎉 "${t.title}" completed!',
           ),
+         
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
