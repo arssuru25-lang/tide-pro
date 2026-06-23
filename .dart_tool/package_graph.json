@@ -13,6 +13,7 @@
         "firebase_core",
         "flutter",
         "google_fonts",
+        "provider",
         "shared_preferences",
         "table_calendar"
       ],
@@ -96,6 +97,15 @@
       "dependencies": [
         "characters",
         "flutter"
+      ]
+    },
+    {
+      "name": "provider",
+      "version": "6.1.5+1",
+      "dependencies": [
+        "collection",
+        "flutter",
+        "nested"
       ]
     },
     {
@@ -367,6 +377,13 @@
       "name": "characters",
       "version": "1.4.1",
       "dependencies": []
+    },
+    {
+      "name": "nested",
+      "version": "1.0.0",
+      "dependencies": [
+        "flutter"
+      ]
     },
     {
       "name": "cloud_firestore_web",

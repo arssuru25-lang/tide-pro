@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'theme/tide_colors.dart';
+import 'theme/theme_provider.dart';
 import 'screens/welcome_screen.dart';
 
 void main() async {
@@ -13,7 +15,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const TideApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const TideApp(),
+    ),
+  );
 }
 
 class TideApp extends StatelessWidget {
@@ -21,21 +28,32 @@ class TideApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(),
-      ),
+          theme: ThemeData(
+            brightness: Brightness.light,
+            textTheme: GoogleFonts.poppinsTextTheme(),
+          ),
 
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: TideColors.darkSurface,
-      ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor:
+                TideColors.darkSurface,
+            textTheme: GoogleFonts.poppinsTextTheme(
+              ThemeData.dark().textTheme,
+            ),
+          ),
 
-      themeMode: ThemeMode.system,
+          themeMode: themeProvider.isDark
+              ? ThemeMode.dark
+              : ThemeMode.light,
 
-      home: const WelcomeScreen(),
+          home: const WelcomeScreen(),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_provider.dart';
 import '../theme/tide_colors.dart';
 import '../widgets/task_card.dart';
 import '../widgets/add_task_sheet.dart';
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
    
   }
 
-  bool isDark = false;
+ 
   String selectedFilter = 'All';
   String selectedCategory = 'All';
   String searchQuery = '';
@@ -145,7 +147,11 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? TideColors.darkCard : TideColors.lightCard,
+     backgroundColor:
+    Theme.of(context).brightness ==
+            Brightness.dark
+        ? TideColors.darkCard
+        : TideColors.lightCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),
@@ -302,7 +308,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
 
-   
+   final isDark =
+    Theme.of(context).brightness ==
+    Brightness.dark;
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF121212) : TideColors.lightSurface,
@@ -310,15 +318,16 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Tide Pro 2.0'),
         actions: [
           IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: () {
-              setState(() {
-                isDark = !isDark;
-              });
-            },
-          ),
+  icon: Icon(
+    context.watch<ThemeProvider>().isDark
+        ? Icons.light_mode
+        : Icons.dark_mode,
+    color: Colors.white,
+  ),
+  onPressed: () {
+    context.read<ThemeProvider>().toggleTheme();
+  },
+),
         ],
       ),
       body: SafeArea(

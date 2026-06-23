@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import 'package:provider/provider.dart';
+import '../theme/theme_provider.dart';
 import '../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/user_stats_service.dart';
@@ -192,63 +194,62 @@ Card(
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(18),
   ),
-  child: ListTile(
-    leading: const Icon(
+  child: SwitchListTile(
+    secondary: const Icon(
       Icons.dark_mode,
       color: Color(0xFF6C63FF),
     ),
-    title: const Text('Dark Mode'),
+    title: const Text(
+      'Dark Mode',
+    ),
     subtitle: const Text(
-      'Currently follows device theme',
+      'Switch app appearance',
     ),
-    trailing: const Icon(
-      Icons.info_outline,
+
+    value:
+        context.watch<ThemeProvider>().isDark,
+
+    onChanged: (value) {
+      context
+          .read<ThemeProvider>()
+          .toggleTheme();
+    },
+  ),
+),
+             
+         Card(
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(18),
+  ),
+  child: SwitchListTile(
+    secondary: const Icon(
+      Icons.notifications,
+      color: Color(0xFF6C63FF),
     ),
-    onTap: () {
+    title: const Text(
+      'Notifications',
+    ),
+    subtitle: const Text(
+      'Task reminders and alerts',
+    ),
+    value: notificationsEnabled,
+    onChanged: (value) {
+      setState(() {
+        notificationsEnabled = value;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Dark Mode currently follows your device settings.',
+            value
+                ? 'Notifications Enabled'
+                : 'Notifications Disabled',
           ),
         ),
       );
     },
   ),
 ),
-             
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: SwitchListTile(
-              secondary: const Icon(
-                Icons.notifications,
-                color: Color(0xFF6C63FF),
-              ),
-              title: const Text(
-                'Notifications',
-              ),
-              subtitle: const Text(
-                'Task reminders and alerts',
-              ),
-              value: notificationsEnabled,
-              onChanged: (value) {
-                setState(() {
-                  notificationsEnabled = value;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      value
-                          ? 'Notifications Enabled'
-                          : 'Notifications Disabled',
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
