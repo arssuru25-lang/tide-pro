@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../services/auth_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   final List<Task> tasks;
@@ -78,32 +79,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
           Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: ListTile(
-              leading: const Icon(
-                Icons.dark_mode,
-                color: Color(0xFF6C63FF),
-              ),
-              title: const Text('Dark Mode'),
-              subtitle: const Text(
-                'Currently follows device theme',
-              ),
-              trailing: const Icon(
-                Icons.info_outline,
-              ),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Dark Mode currently follows your device settings.',
-                    ),
-                  ),
-                );
-              },
-            ),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(18),
+  ),
+  child: ListTile(
+    leading: const Icon(
+      Icons.logout,
+      color: Colors.red,
+    ),
+    title: const Text('Logout'),
+    onTap: () async {
+      await AuthService.logout();
+    },
+  ),
+),
+
+Card(
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(18),
+  ),
+  child: ListTile(
+    leading: const Icon(
+      Icons.dark_mode,
+      color: Color(0xFF6C63FF),
+    ),
+    title: const Text('Dark Mode'),
+    subtitle: const Text(
+      'Currently follows device theme',
+    ),
+    trailing: const Icon(
+      Icons.info_outline,
+    ),
+    onTap: () {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Dark Mode currently follows your device settings.',
           ),
+        ),
+      );
+    },
+  ),
+),
+             
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -186,12 +204,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 'All tasks cleared',
                               ),
                             ),
+                            
+
                           );
                         },
                         child: const Text(
                           'Clear',
                         ),
                       ),
+                     
+
                     ],
                   ),
                 );
