@@ -3,7 +3,8 @@ import '../models/task.dart';
 import '../theme/tide_colors.dart';
 import '../widgets/task_card.dart';
 import '../widgets/add_task_sheet.dart';
-import '../data/storage_service.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 class HomeScreen extends StatefulWidget {
   final List<Task> tasks;
@@ -22,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTasks();
+   
   }
 
   bool isDark = false;
@@ -61,24 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
       task.category = category;
     });
 
-    _saveTasks();
+   
     FirestoreService.updateTask(task);
   }
 
-  Future<void> _loadTasks() async {
-    final saved = await StorageService.loadTasks();
-
-    if (saved.isNotEmpty) {
-      setState(() {
-        tasks.clear();
-        tasks.addAll(saved);
-      });
-    }
-  }
-
-  Future<void> _saveTasks() async {
-    await StorageService.saveTasks(tasks);
-  }
+  
 
   void _toggle(Task t) {
     if (tasks.isNotEmpty && tasks.every((task) => task.isDone)) {
@@ -122,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    _saveTasks();
+    
    FirestoreService.updateTask(t);
   }
 
@@ -145,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     tasks.add(task);
   });
 
-  _saveTasks();
+
 
   FirestoreService.addTask(task);
 }
@@ -309,21 +297,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final completed = tasks.where((task) => task.isDone).length;
-    final remaining = tasks.where((task) => !task.isDone).length;
-    final total = tasks.length;
+   int total = 0;
+int completed = 0;
+int remaining = 0;
+double progress = 0;
 
-    final progress = total == 0 ? 0.0 : completed / total;
-    final filteredTasks = tasks.where((task) {
-      final matchesCategory =
-          selectedFilter == 'All' || task.category == selectedFilter;
-
-      final matchesSearch = task.title.toLowerCase().contains(
-            searchQuery.toLowerCase(),
-          );
-
-      return matchesCategory && matchesSearch;
-    }).toList();
+   
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF121212) : TideColors.lightSurface,
@@ -531,57 +510,132 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Tasks Found: ${filteredTasks.length}',
-              style: const TextStyle(
-                color: Colors.red,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filteredTasks.length,
-              itemBuilder: (context, index) {
-                final task = filteredTasks[index];
-
-                return Dismissible(
-                  key: Key(task.title),
-                  background: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onDismissed: (_) {
-                    setState(() {
-                      tasks.remove(task);
-                    });
-
-                    _saveTasks();
-                    FirestoreService.deleteTask(task.id!);
-                  },
-                  child: TaskCard(
-                    task: task,
-                    onTap: () => _toggle(task),
-                    onLongPress: () => _openEditSheet(task),
-                  ),
-                );
-              },
-            ),
-          ],
+           
+          StreamBuilder<QuerySnapshot>(
+  stream: FirestoreService.taskStream(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState ==
+        ConnectionState.waiting) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: CircularProgressIndicator(),
         ),
+      );
+    }
+
+    if (!snapshot.hasData ||
+        snapshot.data!.docs.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(
+          child: Text('No tasks yet 🌊'),
+        ),
+      );
+    }
+
+    final docs = snapshot.data!.docs;
+
+    final firestoreTasks = docs.map((doc) {
+      return Task.fromMap(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      );
+    }).toList();
+   final completed =
+    firestoreTasks.where((t) => t.isDone).length;
+
+final remaining =
+    firestoreTasks.where((t) => !t.isDone).length;
+
+final total = firestoreTasks.length;
+
+final progress =
+    total == 0 ? 0.0 : completed / total;
+
+final filteredTasks = firestoreTasks.where((task) {
+  final matchesCategory =
+      selectedFilter == 'All' ||
+      task.category == selectedFilter;
+
+  final matchesSearch = task.title.toLowerCase().contains(
+        searchQuery.toLowerCase(),
+      );
+
+  return matchesCategory && matchesSearch;
+}).toList();
+return Column(
+  children: [
+    Text(
+      'Tasks Found: ${filteredTasks.length}',
+      style: const TextStyle(
+        color: Colors.red,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
       ),
-      floatingActionButton: FloatingActionButton(
+    ),
+
+    ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: filteredTasks.length,
+      itemBuilder: (context, index) {
+        final task = filteredTasks[index];
+
+        return Dismissible(
+          key: Key(task.id ?? task.title),
+
+          background: Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 20),
+            color: Colors.red,
+            child: const Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+          ),
+
+          secondaryBackground: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            color: Colors.red,
+            child: const Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+          ),
+
+          onDismissed: (_) async {
+            if (task.id != null) {
+              await FirestoreService.deleteTask(task.id!);
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '"${task.title}" deleted',
+                ),
+              ),
+            );
+          },
+
+          child: TaskCard(
+            task: task,
+            onTap: () => _toggle(task),
+            onLongPress: () => _openEditSheet(task),
+          ),
+        );
+      },
+    ),
+  ],
+);
+  },
+          ),
+          
+               ],
+        ),
+      ), 
+           floatingActionButton: FloatingActionButton(
         backgroundColor: TideColors.primary,
         onPressed: _openSheet,
         child: const Icon(
