@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/task.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 class CalendarScreen extends StatefulWidget {
   final List<Task> tasks;
 
@@ -17,35 +18,69 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+Stream<List<Task>> get _taskStream {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
 
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(uid)
+      .collection('tasks')
+      .snapshots()
+      .map(
+        (snapshot) => snapshot.docs
+            .map(
+              (doc) => Task.fromMap(
+                doc.data(),
+                doc.id,
+              ),
+            )
+            .toList(),
+      );
+}
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final totalTasks = widget.tasks.length;
-
-    final completedTasks = widget.tasks.where((t) => t.isDone).length;
-
-    final pendingTasks = totalTasks - completedTasks;
-
-    final selectedTasks = _selectedDay == null
-        ? <Task>[]
-        : widget.tasks.where((task) {
-            if (task.dueDate == null) {
-              return false;
-            }
-
-            return isSameDay(
-              task.dueDate,
-              _selectedDay,
-            );
-          }).toList();
-
+   
     return Scaffold(
       appBar: AppBar(
         title: const Text('📅 Calendar'),
       ),
-      body: SingleChildScrollView(
+      body: StreamBuilder<List<Task>>(
+  stream: _taskStream,
+  builder: (context, snapshot) {
+
+    if (!snapshot.hasData) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    final tasks = snapshot.data!;
+
+    final totalTasks = tasks.length;
+
+    final completedTasks =
+        tasks.where((t) => t.isDone).length;
+
+    final pendingTasks =
+        totalTasks - completedTasks;
+
+    final selectedTasks =
+        _selectedDay == null
+            ? <Task>[]
+            : tasks.where((task) {
+                if (task.dueDate == null) {
+                  return false;
+                }
+
+                return isSameDay(
+                  task.dueDate,
+                  _selectedDay,
+                );
+              }).toList();
+
+    return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -125,7 +160,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   lastDay: DateTime.utc(2035),
                   focusedDay: _focusedDay,
                   eventLoader: (day) {
-                    return widget.tasks.where((task) {
+                   return tasks.where((task){
                       if (task.dueDate == null) {
                         return false;
                       }
@@ -151,29 +186,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       _focusedDay = focusedDay;
                     });
                   },
-                  calendarBuilders: CalendarBuilders(
-                    markerBuilder: (
-                      context,
-                      date,
-                      events,
-                    ) {
-                      if (events.isNotEmpty) {
-                        return Positioned(
-                          bottom: 4,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        );
-                      }
+                 calendarBuilders: CalendarBuilders(
+  markerBuilder: (
+    context,
+    date,
+    events,
+  ) {
+    if (events.isEmpty) return null;
 
-                      return null;
-                    },
-                  ),
+    return Positioned(
+      bottom: 4,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          '${events.length}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  },
+),
                   calendarStyle: CalendarStyle(
                     selectedDecoration: const BoxDecoration(
                       color: Color(0xFF6C63FF),
@@ -242,7 +285,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     'No tasks due on this day',
                   ),
                 ),
-              ...selectedTasks.map(
+                        ...selectedTasks.map(
                 (task) => _taskTile(
                   task.title,
                   task.priorityColor,
@@ -251,10 +294,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ],
           ),
         ),
-      ),
+      );
+    },
+),
     );
   }
 
+  
   Widget _taskTile(
     String title,
     Color color,

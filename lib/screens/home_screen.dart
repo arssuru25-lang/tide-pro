@@ -317,18 +317,21 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Tide Pro 2.0'),
         actions: [
-          IconButton(
-  icon: Icon(
-    context.watch<ThemeProvider>().isDark
-        ? Icons.light_mode
-        : Icons.dark_mode,
-    color: Colors.white,
+  IconButton(
+    icon: Icon(
+      context.watch<ThemeProvider>().isDark
+          ? Icons.light_mode
+          : Icons.dark_mode,
+      color: Theme.of(context).brightness ==
+              Brightness.dark
+          ? Colors.white
+          : Colors.black,
+    ),
+    onPressed: () {
+      context.read<ThemeProvider>().toggleTheme();
+    },
   ),
-  onPressed: () {
-    context.read<ThemeProvider>().toggleTheme();
-  },
-),
-        ],
+],
       ),
       body: SafeArea(
         child: ListView(
