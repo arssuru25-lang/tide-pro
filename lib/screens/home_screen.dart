@@ -8,6 +8,7 @@ import '../widgets/add_task_sheet.dart';
 import '../services/user_stats_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
+import '../services/notification_service.dart';
 class HomeScreen extends StatefulWidget {
   final List<Task> tasks;
 
@@ -103,6 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (t.isDone) {
       await UserStatsService.addXP(10);
       await UserStatsService.updateStreak();
+     await NotificationService.showNotification(
+  title: '🎉 Task Completed',
+  body: '${t.title} completed successfully!',
+);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
