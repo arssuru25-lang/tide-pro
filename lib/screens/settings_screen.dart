@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/user_stats_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'achievements_screen.dart';
 class SettingsScreen extends StatefulWidget {
   final List<Task> tasks;
   final VoidCallback onTasksCleared;
@@ -315,6 +316,35 @@ Card(
               },
             ),
           ),
+          Card(
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(18),
+  ),
+  child: ListTile(
+    leading: const Icon(
+      Icons.emoji_events,
+      color: Colors.amber,
+    ),
+    title: const Text(
+      'Achievements',
+    ),
+    subtitle: const Text(
+      'View your progress',
+    ),
+    trailing: const Icon(
+      Icons.chevron_right,
+    ),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              const AchievementsScreen(),
+        ),
+      );
+    },
+  ),
+),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
