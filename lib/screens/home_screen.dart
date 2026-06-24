@@ -10,6 +10,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../services/notification_service.dart';
 import '../services/share_service.dart';
+import '../services/ai_service.dart';
+import 'ai_planner_screen.dart';
 class HomeScreen extends StatefulWidget {
   final List<Task> tasks;
 
@@ -23,7 +25,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   List<Task> get tasks => widget.tasks;
+  
   @override
   void initState() {
     super.initState();
@@ -131,15 +135,18 @@ class _HomeScreenState extends State<HomeScreen> {
   String priority,
   String category,
   DateTime? dueDate,
-) {
+)async {
   if (title.trim().isEmpty) return;
 
-  final task = Task(
-    title: title.trim(),
-    priority: priority,
-    category: category,
-    dueDate: dueDate,
-  );
+String aiCategory =
+    await AIService().categorizeTask(title);
+
+final task = Task(
+  title: title.trim(),
+  priority: priority,
+  category: aiCategory,
+  dueDate: dueDate,
+);
 
   setState(() {
     tasks.add(task);
@@ -323,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Tide Pro 2.0'),
         actions: [
+         
   IconButton(
     icon: Icon(
       context.watch<ThemeProvider>().isDark
@@ -337,6 +345,21 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<ThemeProvider>().toggleTheme();
     },
   ),
+   IconButton(
+  icon: const Icon(Icons.smart_toy),
+
+  onPressed: () {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AIPlannerScreen(
+          tasks: tasks,
+        ),
+      ),
+    );
+  },
+),
 ],
       ),
       body: SafeArea(
@@ -518,17 +541,22 @@ final total = firestoreTasks.length;
 final progress =
     total == 0 ? 0.0 : completed / total;
 
-final filteredTasks = firestoreTasks.where((task) {
+final filteredTasks =
+    firestoreTasks.where((task) {
+
   final matchesCategory =
       selectedFilter == 'All' ||
       task.category == selectedFilter;
 
-  final matchesSearch = task.title.toLowerCase().contains(
-        searchQuery.toLowerCase(),
-      );
+  final matchesSearch = task.title
+      .toLowerCase()
+      .contains(searchQuery.toLowerCase());
 
-  return matchesCategory && matchesSearch;
+  return matchesCategory &&
+      matchesSearch;
+
 }).toList();
+
 return Column(
   children: [
 
@@ -575,7 +603,19 @@ return Column(
     ),
 
     const SizedBox(height: 6),
+TextField(
+  decoration: const InputDecoration(
+    hintText: 'AI Search',
+    prefixIcon: Icon(Icons.search),
+  ),
+  onChanged: (value) {
+    setState(() {
+      searchQuery = value;
+    });
+  },
+),
 
+const SizedBox(height: 10),
     Column(
       children: [
         Text(
@@ -596,6 +636,24 @@ return Column(
         ),
       ],
     ),
+    ElevatedButton.icon(
+  icon: const Icon(Icons.smart_toy),
+  label: const Text('Ask AI'),
+  onPressed: () async {
+
+    final reply = await AIService().chat(
+      "What's my most overdue task?"
+    );
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('AI Assistant'),
+        content: Text(reply),
+      ),
+    );
+  },
+),
 
     const SizedBox(height: 12),
 
