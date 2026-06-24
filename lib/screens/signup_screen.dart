@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -14,20 +14,68 @@ class _SignupScreenState
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  Future<void> signup() async {
-    try {
-      await AuthService.signUp(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+ Future<void> signup() async {
+  try {
+    await AuthService.signUp(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Account created successfully!',
+        ),
+      ),
+    );
+
+    Navigator.pop(context);
+  } on FirebaseAuthException catch (e) {
+    String message;
+
+    switch (e.code) {
+      case 'weak-password':
+        message = 'Password is too weak.';
+        break;
+
+      case 'email-already-in-use':
+        message =
+            'This email is already registered.';
+        break;
+
+      case 'invalid-email':
+        message =
+            'Please enter a valid email.';
+        break;
+
+      default:
+        message = e.message ??
+            'Signup failed. Please try again.';
     }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Unexpected error: $e',
+        ),
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

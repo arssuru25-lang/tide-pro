@@ -9,6 +9,7 @@ import '../services/user_stats_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../services/notification_service.dart';
+import '../services/share_service.dart';
 class HomeScreen extends StatefulWidget {
   final List<Task> tasks;
 
@@ -653,9 +654,12 @@ ListView.builder(
       },
 
       child: TaskCard(
+       
         task: task,
         onTap: () => _toggle(task),
         onLongPress: () => _openEditSheet(task),
+        
+
       ),
     );
   },

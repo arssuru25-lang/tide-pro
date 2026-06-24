@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../theme/tide_colors.dart';
+import '../services/share_service.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -107,39 +108,55 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TideColors.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        task.category,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: task.priorityColor,
-                      ),
-                    ),
-                  ],
-                )
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+    Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: TideColors.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        task.category,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).brightness ==
+                  Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
+      ),
+    ),
+
+    const SizedBox(height: 6),
+
+    Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: task.priorityColor,
+      ),
+    ),
+
+    const SizedBox(height: 8),
+
+    IconButton(
+      icon: const Icon(
+        Icons.share,
+        color: Colors.blue,
+        size: 20,
+      ),
+      onPressed: () {
+        ShareService.shareTask(task);
+      },
+    ),
+  ],
+)
               ],
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/user_stats_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'achievements_screen.dart';
+import 'profile_screen.dart';
 class SettingsScreen extends StatefulWidget {
   final List<Task> tasks;
   final VoidCallback onTasksCleared;
@@ -21,6 +22,7 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+
 class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
 
@@ -32,6 +34,7 @@ final user = FirebaseAuth.instance.currentUser;
       appBar: AppBar(
         title: const Text('⚙ Settings'),
       ),
+     
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
