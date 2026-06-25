@@ -4,9 +4,10 @@ import anthropic
 
 app = Flask(__name__)
 CORS(app)
+import os
 
 client = anthropic.Anthropic(
-    api_key="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"
+    api_key=os.getenv("ANTHROPIC_API_KEY")
 )
 
 # ---------------- AI CHAT ---------------- #
