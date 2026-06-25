@@ -1,80 +1,111 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class AIService {
+
+  // CHANGE THIS TO YOUR PC IP
+  static const String baseUrl =
+      'http://192.168.1.7:5000';
+
+  // ---------------- AI Planner ----------------
+
   Future<String> planMyDay(List<String> tasks) async {
-    if (tasks.isEmpty) {
-      return "No tasks available.";
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/plan'),
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: jsonEncode({
+        'tasks': tasks,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['plan'];
     }
 
-    tasks.sort();
-
-    return '''
-📌 AI Daily Plan
-
-1. ${tasks.isNotEmpty ? tasks[0] : ""}
-
-${tasks.length > 1 ? "2. ${tasks[1]}\n" : ""}
-${tasks.length > 2 ? "3. ${tasks[2]}\n" : ""}
-${tasks.length > 3 ? "4. ${tasks[3]}\n" : ""}
-
-Priority Order:
-• Complete high priority tasks first.
-• Finish overdue tasks immediately.
-• Group similar tasks together.
-• Keep personal tasks for later.
-
-Suggested by AI Planner.
-''';
+    throw Exception('Failed to generate plan');
   }
+
+  // ---------------- AI Categorization ----------------
 
   Future<String> categorizeTask(String title) async {
-    final text = title.toLowerCase();
 
-    if (text.contains('study') ||
-        text.contains('exam') ||
-        text.contains('assignment')) {
-      return 'Study';
+    final response = await http.post(
+      Uri.parse('$baseUrl/categorize'),
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: jsonEncode({
+        'title': title,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['category'];
     }
 
-    if (text.contains('gym') ||
-        text.contains('doctor') ||
-        text.contains('health')) {
-      return 'Health';
-    }
-
-    if (text.contains('money') ||
-        text.contains('bank') ||
-        text.contains('bill')) {
-      return 'Finance';
-    }
-
-    if (text.contains('office') ||
-        text.contains('project') ||
-        text.contains('meeting')) {
-      return 'Work';
-    }
-
-    return 'Personal';
+    return "Personal";
   }
+
+  // ---------------- Semantic Search ----------------
 
   Future<List<String>> semanticSearch(
-      String query, List<String> tasks) async {
-    query = query.toLowerCase();
+      String query,
+      List<String> tasks,
+      ) async {
 
-    return tasks
-        .where((t) => t.toLowerCase().contains(query))
-        .toList();
+    final response = await http.post(
+      Uri.parse('$baseUrl/search'),
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: jsonEncode({
+        'query': query,
+        'tasks': tasks,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+
+      final result =
+      jsonDecode(response.body)['result'];
+
+      return result
+          .toString()
+          .split('\n');
+    }
+
+    return [];
   }
 
-  Future<String> chat(String prompt) async {
-    return '''
-🤖 AI Assistant
+  // ---------------- AI Chat ----------------
 
-Question:
-$prompt
+  Future<String> chat(String message) async {
 
-Answer:
-You should focus on your overdue and high priority tasks first.
+    final response = await http.post(
+      Uri.parse('$baseUrl/chat'),
 
-Keep your workload balanced and complete urgent tasks today.
-''';
+      headers: {
+        'Content-Type': 'application/json',
+      },
+
+      body: jsonEncode({
+        'message': message,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['reply'];
+    }
+
+    throw Exception('Chat failed');
   }
 }

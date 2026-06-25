@@ -12,6 +12,7 @@ import '../services/notification_service.dart';
 import '../services/share_service.dart';
 import '../services/ai_service.dart';
 import 'ai_planner_screen.dart';
+import 'chat_screen.dart';
 class HomeScreen extends StatefulWidget {
   final List<Task> tasks;
 
@@ -330,6 +331,21 @@ final task = Task(
       appBar: AppBar(
         title: const Text('Tide Pro 2.0'),
         actions: [
+     IconButton(
+  icon: const Icon(Icons.chat),
+
+  onPressed: () {
+
+    Navigator.push(
+      context,
+
+      MaterialPageRoute(
+        builder: (_) =>
+            const ChatScreen(),
+      ),
+    );
+  },
+),     
          
   IconButton(
     icon: Icon(

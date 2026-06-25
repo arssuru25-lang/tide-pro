@@ -2,39 +2,62 @@ import 'package:flutter/material.dart';
 import '../services/ai_service.dart';
 
 class ChatScreen extends StatefulWidget {
-
   const ChatScreen({super.key});
 
   @override
-  State<ChatScreen> createState() =>
-      _ChatScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState
-    extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> {
 
-  final controller =
+  final TextEditingController controller =
       TextEditingController();
 
-  final List<String> messages = [];
+  final List<Map<String, String>> messages = [];
 
-  Future<void> send() async {
+  bool loading = false;
+
+  Future<void> sendMessage() async {
+
+    if (controller.text.trim().isEmpty) return;
 
     final text = controller.text;
 
-    if (text.isEmpty) return;
-
     setState(() {
-      messages.add("You: $text");
+      messages.add({
+        'sender': 'You',
+        'message': text,
+      });
+
+      loading = true;
     });
 
     controller.clear();
 
-    final reply =
-        await AIService().chat(text);
+    try {
+
+      final reply =
+          await AIService().chat(text);
+
+      setState(() {
+        messages.add({
+          'sender': 'AI',
+          'message': reply,
+        });
+      });
+
+    } catch (e) {
+
+      setState(() {
+        messages.add({
+          'sender': 'AI',
+          'message': 'Error: $e',
+        });
+      });
+    }
 
     setState(() {
-      messages.add("Claude: $reply");
+      loading = false;
     });
   }
 
@@ -44,7 +67,8 @@ class _ChatScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-            'AI Assistant'),
+          '🤖 AI Assistant',
+        ),
       ),
 
       body: Column(
@@ -54,19 +78,34 @@ class _ChatScreenState
             child: ListView.builder(
               itemCount: messages.length,
 
-              itemBuilder: (_, i) {
+              itemBuilder: (context, index) {
+
+                final msg = messages[index];
 
                 return ListTile(
                   title: Text(
-                      messages[i]),
+                    msg['sender']!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  subtitle: Text(
+                    msg['message']!,
+                  ),
                 );
               },
             ),
           ),
 
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(8),
+              child: CircularProgressIndicator(),
+            ),
+
           Padding(
-            padding:
-                const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
 
             child: Row(
               children: [
@@ -74,16 +113,24 @@ class _ChatScreenState
                 Expanded(
                   child: TextField(
                     controller: controller,
+
+                    decoration:
+                        const InputDecoration(
+                      hintText:
+                          'Ask anything...',
+                      border:
+                          OutlineInputBorder(),
+                    ),
                   ),
                 ),
 
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: send,
-                )
+                  onPressed: sendMessage,
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

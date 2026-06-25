@@ -18,23 +18,48 @@ class SemanticSearchScreen extends StatefulWidget {
 class _SemanticSearchScreenState
     extends State<SemanticSearchScreen> {
 
-  final controller = TextEditingController();
+  final TextEditingController controller =
+      TextEditingController();
 
   List<String> results = [];
+  bool loading = false;
 
   Future<void> search() async {
 
-    final response =
-        await AIService().semanticSearch(
-      controller.text,
-      widget.tasks
-          .map((e) => e.title)
-          .toList(),
-    );
+    if (controller.text.trim().isEmpty) return;
 
     setState(() {
-      results = response;
+      loading = true;
     });
+
+    try {
+
+      final response =
+          await AIService().semanticSearch(
+        controller.text.trim(),
+        widget.tasks
+            .map((e) => e.title)
+            .toList(),
+      );
+
+      setState(() {
+        results = response;
+        loading = false;
+      });
+
+    } catch (e) {
+
+      setState(() {
+        results = ['Error: $e'];
+        loading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -42,9 +67,7 @@ class _SemanticSearchScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'AI Semantic Search',
-        ),
+        title: const Text('🤖 AI Semantic Search'),
       ),
 
       body: Padding(
@@ -55,10 +78,15 @@ class _SemanticSearchScreenState
 
             TextField(
               controller: controller,
+              autofocus: false,
+
               decoration: const InputDecoration(
                 hintText: 'Example: weekend tasks',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
               ),
+
+              onSubmitted: (_) => search(),
             ),
 
             const SizedBox(height: 12),
@@ -70,29 +98,36 @@ class _SemanticSearchScreenState
 
             const SizedBox(height: 20),
 
-            Expanded(
-              child: results.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No tasks found',
+            if (loading)
+              const CircularProgressIndicator(),
+
+            if (!loading)
+              Expanded(
+                child: results.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Type something and press Search',
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: results.length,
+
+                        itemBuilder: (context, index) {
+
+                          return Card(
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.task_alt,
+                              ),
+
+                              title: Text(
+                                results[index],
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: results.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.task_alt,
-                            ),
-                            title: Text(
-                              results[index],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
+              ),
           ],
         ),
       ),
