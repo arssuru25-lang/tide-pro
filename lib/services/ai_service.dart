@@ -5,7 +5,7 @@ class AIService {
 
   // CHANGE THIS TO YOUR PC IP
   static const String baseUrl =
-      'http://192.168.1.7:5000';
+      'https://tide-pro.onrender.com';
 
   // ---------------- AI Planner ----------------
 
